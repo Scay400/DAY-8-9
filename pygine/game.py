@@ -73,7 +73,7 @@ class Game:
 
         # Создаём окно, только если об этом явно не попросили отказаться.
         if create_display:
-            self.screen = pygame.display.set_mode((width, height))
+            self.screen = pygame.disi.set_mode((width, height))
             pygame.display.set_caption(title)
         else:
             # Если пользователь уже создал окно – забираем его.
