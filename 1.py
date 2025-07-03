@@ -30,10 +30,14 @@ COLOR_SLIDER_FG = (255, 215, 0)
 COLOR_SHADOW = (0, 0, 0, 150)  # для тени
 COLOR_TEXT_MENU = (162, 162, 208)
 
-# Загрузка текстуры фона
+# Загрузка текстуры фона для меню
 original_bg_img = pygame.image.load("background.png").convert()
 background_img = pygame.transform.scale(original_bg_img, (game.width, game.height))
 bg_offset_x = 0
+
+# Загрузка текстуры фона для игры (playing)
+original_bg_img_game = pygame.image.load("background1.png").convert()
+background_img_game = pygame.transform.scale(original_bg_img_game, (game.width, game.height))
 
 # Функция для отрисовки текста с тенью
 def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=(0,0,0)):
@@ -90,6 +94,7 @@ def start_game():
     global game_state, timer
     game_state = "playing"
     timer = 5.0
+    
     print("Игра началась!")
 
 def open_settings_main():
@@ -271,7 +276,7 @@ def draw():
     width = game.screen.get_width()
     height = game.screen.get_height()
 
-    # Отрисовка двигающегося фона с повторением
+    # Отрисовка двигающегося фона с повторением (меню)
     x = -bg_offset_x
     while x < width:
         game.screen.blit(background_img, (x, 0))
@@ -351,9 +356,8 @@ def draw():
             button.draw(game.screen)
 
     elif game_state == "playing":
-        # Здесь можно рисовать игру
-        # Пока просто заливка фоном
-        game.screen.fill((20, 20, 40))
+        # Рисуем фон игры из background1.png
+        game.screen.blit(background_img_game, (0, 0))
 
         # Инструкция: нажмите ESC для вызова меню паузы
         info_font = pygame.font.SysFont(None, 28)
