@@ -362,10 +362,10 @@ def on_throw_bomb_button():
 
 button_manager.add_button(
     state="playing",
-    x=1150,  # позиция по X, можно скорректировать под ваш UI
-    y=350,
-    width=100,
-    height=100,
+    x=1114,  # позиция по X, можно скорректировать под ваш UI
+    y=373,
+    width=150,
+    height=130,
     text="Кинуть динамит",
     font_size=25,
     border_radius=12,
