@@ -35,6 +35,7 @@ class Klient():
 
 
 
+
         self.gender = random.choice(["male","female"])    
 
         if self.gender == "male":
@@ -57,6 +58,7 @@ class Klient():
         self.hair = None
         self.race = "human"
         self.skin = "standart"
+
 
         self.gender = random.choice(["male","female"])    
 
@@ -81,6 +83,11 @@ class Klient():
 npc = Klient()
 
 debuff_list = []
+scale_list = []
+
+bignose = False
+bigeye = False
+bigear = False
 
 npc.print_info()
 npc.randomize()
@@ -89,47 +96,67 @@ game = pg.Game(600, 600, "Walter's Bar",60,(100,100,100))
 
 
 k_body = pg.AnimatedSprite('NPC/body.png',(38,65),(300,300))
-k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gclothing+'/'+npc.clothing+'.png',(38,65),(300,300))
-k_ear = pg.AnimatedSprite('NPC/ears/standart/'+npc.race+'.png',(38,65),(300,300))
-k_eye = pg.AnimatedSprite('NPC/eyes/human.png',(38,65),(300,300))
-k_nose = pg.AnimatedSprite('NPC/noses/standart/'+npc.race+'.png',(38,65),(300,300))
-if not "pig" in debuff_list and not "raw" in debuff_list and not "cock" in debuff_list:
-    k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(300,300))
+k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gclothing+'/'+npc.clothing+'.png',(38,65),(k_body.x,k_body.y))
+k_ear = pg.AnimatedSprite('NPC/ears/standart/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
+k_eye = pg.AnimatedSprite('NPC/eyes/human.png',(38,65),(k_body.x,k_body.y))
+k_nose = pg.AnimatedSprite('NPC/noses/standart/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
+if not "pig" in debuff_list and not "ram" in debuff_list and not "cock" in debuff_list:
+    k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(k_body.x,k_body.y))
+k_head = pg.AnimatedSprite('NPC/heads/'+npc.skin+'/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
 
+ 
 scale_factor = 3.0  # Масштаб (1.0 - оригинальный размер)
-for sprite in [k_body, k_clothing, k_ear, k_eye, k_nose, k_hair]:
+for sprite in [k_body, k_clothing,k_hair,k_head]:
     set_scale(sprite, scale_factor)
-
+if bignose == True:
+    set_scale(k_nose,3.5)
+else:
+    set_scale(k_nose,3.0)
+if bigear == True:
+    set_scale(k_ear,3.5)
+else:
+    set_scale(k_ear,3.0)
+if bigeye == True:
+    set_scale(k_eye,3.5)
+else:
+    set_scale(k_eye,3.0)
 
 
 def change():
-    global k_body,k_clothing,k_ear,k_eye,k_nose,k_hair
+    global k_body,k_clothing,k_ear,k_eye,k_nose,k_hair,k_head,bigeye,bigear,bignose
 
     if "pig" in debuff_list:
         npc.race = "pig"
-    elif "raw" in debuff_list:
-        npc.race = "raw" 
+        npc.head = True
+    elif "ram" in debuff_list:
+        npc.race = "ram" 
+        npc.head = True
     elif "cock" in debuff_list:
         npc.race = "cock"   
+        npc.head = True
 
     if "red" in debuff_list:
         npc.skin = "red"
+        npc.head = True
     elif "green" in debuff_list:
         npc.skin = "green"
+        npc.head = True
     elif "blue" in debuff_list:
         npc.skin = "blue"
+        npc.head = True
     elif "black" in debuff_list:
         npc.skin = "black"
+        npc.head = True
+    elif "goblin" in debuff_list:
+        npc.skin = "green"
+        npc.head = True
 
     if "bignose" in debuff_list:
-        for sprite in [k_nose]:
-            set_scale(sprite, scale_factor+1)
+        bignose = True
     if "bigeye" in debuff_list:
-        for sprite in [k_eye]:
-            set_scale(sprite, scale_factor+1)
+        bigeye = True
     if "bigear" in debuff_list:
-        for sprite in [k_ear]:
-            set_scale(sprite, scale_factor+1)
+        bigear = True
 
     if "vampire" in debuff_list:
         npc.gclothing = "special"
@@ -143,25 +170,42 @@ def change():
     
 
 def update():
-    global k_body,k_clothing,k_ear,k_eye,k_nose,k_hair
+    global k_body,k_clothing,k_ear,k_eye,k_nose,k_hair,k_head
 
     k_body = pg.AnimatedSprite('NPC/body.png',(38,65),(300,300))
-    k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gclothing+'/'+npc.clothing+'.png',(38,65),(300,300))
-    if not "cock" in debuff_list and not "raw" in debuff_list:
-        k_ear = pg.AnimatedSprite('NPC/ears/'+npc.skin+'/'+npc.race+'.png',(38,65),(300,300))
-    elif "raw" in debuff_list:
-        k_ear = pg.AnimatedSprite('NPC/ears/standart/'+npc.race+'.png',(38,65),(300,300))
-    k_eye = pg.AnimatedSprite('NPC/eyes/'+npc.race+'.png',(38,65),(300,300))
-    if not "goblin" in debuff_list:
-        k_nose = pg.AnimatedSprite('NPC/noses/'+npc.skin+'/'+npc.race+'.png',(38,65),(300,300))
+    k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gclothing+'/'+npc.clothing+'.png',(38,65),(k_body.x,k_body.y))
+    if not "cock" in debuff_list and not "ram" in debuff_list:
+        k_ear = pg.AnimatedSprite('NPC/ears/'+npc.skin+'/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
+    elif "ram" in debuff_list:
+        k_ear = pg.AnimatedSprite('NPC/ears/standart/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
+    if "cock" in debuff_list:
+        k_eye = pg.AnimatedSprite('NPC/eyes/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
     else:
-        k_nose = pg.AnimatedSprite('NPC/noses/special/goblin.png',(38,65),(300,300))
-    if not "pig" in debuff_list and not "raw" in debuff_list and not "cock" in debuff_list:
-        k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(300,300))
+        k_eye = pg.AnimatedSprite('NPC/eyes/human.png',(38,65),(k_body.x,k_body.y))
+    if not "goblin" in debuff_list:
+        k_nose = pg.AnimatedSprite('NPC/noses/'+npc.skin+'/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
+    else:
+        k_nose = pg.AnimatedSprite('NPC/noses/special/goblin.png',(38,65),(k_body.x,k_body.y))
+    if not "pig" in debuff_list and not "ram" in debuff_list and not "cock" in debuff_list:
+        k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(k_body.x,k_body.y))
+    k_head = pg.AnimatedSprite('NPC/heads/'+npc.skin+'/'+npc.race+'.png',(38,65),(k_body.x,k_body.y))
 
     scale_factor = 3.0  # Масштаб (1.0 - оригинальный размер)
-    for sprite in [k_body, k_clothing, k_ear, k_eye, k_nose, k_hair]:
+    for sprite in [k_body, k_clothing,k_hair,k_head]:
         set_scale(sprite, scale_factor)
+    if bignose == True:
+        set_scale(k_nose,3.5)
+    else:
+        set_scale(k_nose,3.0)
+    if bigear == True:
+        set_scale(k_ear,3.5)
+    else:
+        set_scale(k_ear,3.0)
+    if bigeye == True:
+        set_scale(k_eye,3.5)
+    else:
+        set_scale(k_eye,3.0)
+
 
 
 
@@ -172,26 +216,27 @@ def update():
         npc.randomize()
 
         k_body = pg.AnimatedSprite('NPC/body.png',(38,65),(300,300))
-        k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gender+'/'+npc.clothing+'.png',(38,65),(300,300))
-        k_ear = pg.AnimatedSprite('NPC/ears/standart/human.png',(38,65),(300,300))
-        k_eye = pg.AnimatedSprite('NPC/eyes/human.png',(38,65),(300,300))
-        k_nose = pg.AnimatedSprite('NPC/noses/standart/human.png',(38,65),(300,300))
-        k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(300,300))
+        k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gender+'/'+npc.clothing+'.png',(38,65),(k_body.x,k_body.y))
+        k_ear = pg.AnimatedSprite('NPC/ears/standart/human.png',(38,65),(k_body.x,k_body.y))
+        k_eye = pg.AnimatedSprite('NPC/eyes/human.png',(38,65),(k_body.x,k_body.y))
+        k_nose = pg.AnimatedSprite('NPC/noses/standart/human.png',(38,65),(k_body.x,k_body.y))
+        k_hair = pg.AnimatedSprite('NPC/hair/'+npc.gender+'/'+npc.hair+'.png',(38,65),(k_body.x,k_body.y))
 
+      
         for sprite in [k_body, k_clothing, k_ear, k_eye, k_nose, k_hair]:
             set_scale(sprite, scale_factor)
-    
+ 
     print(debuff_list)
 
     if pg.key_just_pressed(pygame.K_q):
-        if not "cock" in debuff_list and not "raw" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
+        if not "cock" in debuff_list and not "ram" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
             debuff_list.append('pig')
     elif pg.key_just_pressed(pygame.K_w):
-        if not "cock" in debuff_list and not "raw" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
+        if not "cock" in debuff_list and not "ram" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
             debuff_list.append('cock')
     elif pg.key_just_pressed(pygame.K_e):
-        if not "cock" in debuff_list and not "raw" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
-            debuff_list.append('raw')
+        if not "cock" in debuff_list and not "ram" in debuff_list and not "pig" in debuff_list and not "goblin" in debuff_list:
+            debuff_list.append('ram')
     elif pg.key_just_pressed(pygame.K_r):
         if not "bignose" in debuff_list:
             debuff_list.append('bignose')
@@ -239,14 +284,20 @@ def draw():
 
     game.screen.blit(k_body.image,k_body.rect)
 
+
+    game.screen.blit(k_head.image,k_head.rect)
+
     game.screen.blit(k_clothing.image,k_clothing.rect)
-    if not "cock" in debuff_list:
+
+    if npc.race != "cock":
         game.screen.blit(k_ear.image,k_ear.rect)
 
     game.screen.blit(k_eye.image,k_eye.rect)
     game.screen.blit(k_nose.image,k_nose.rect)
+    if npc.race != "cock" and npc.race != "pig" and npc.race != "ram":
+        game.screen.blit(k_hair.image,k_hair.rect)
 
-    game.screen.blit(k_hair.image,k_hair.rect)
+    
 
 
 game.run(update,draw)
