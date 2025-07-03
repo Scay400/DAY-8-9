@@ -14,7 +14,7 @@ pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 # Состояния игры
-game_state = "menu"  # menu, playing, settings_main, settings_in_game, exploded
+game_state = "menu"  # menu, playing, settings_main, settings_in_game, exploded, instructions
 previous_state = None
 timer = 5.0
 
@@ -103,9 +103,8 @@ class WalterAnimation:
     def draw(self, surface):
         frame_id = self.animations[self.current_animation][self.current_frame_index]
         frame = get_frame(walter_spritesheet_img, frame_id)
-        scaled_frame = pygame.transform.scale(frame, (FRAME_WIDTH * 3, FRAME_HEIGHT * 3))
+        scaled_frame = pygame.transform.scale(frame, (FRAME_WIDTH * 4, FRAME_HEIGHT * 4))
         surface.blit(scaled_frame, (self.x, self.y - FRAME_HEIGHT))
-
 
 # Отрисовка текста с тенью
 def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=(0,0,0)):
@@ -131,12 +130,14 @@ class ButtonManager:
             "menu": [],
             "playing": [],
             "settings_main": [],
-            "settings_in_game": []
+            "settings_in_game": [],
+            "instructions": []
         }
+        self.invisible_buttons = []  # Для хранения невидимых кнопок
     
     def add_button(self, state, x, y, width, height, text, 
                   font_size=30, border_radius=10, 
-                  callback=None, colors=None):
+                  callback=None, colors=None, effect_callback=None, invisible=False):
         """Добавляет новую кнопку в указанное состояние"""
         btn = pg.Button(x, y, width, height, text, 
                        border_radius=border_radius, 
@@ -145,13 +146,19 @@ class ButtonManager:
         if callback:
             btn.callback = callback
         
-        self.buttons[state].append(btn)
+        btn.effect_callback = effect_callback
+        btn.invisible = invisible  # Добавляем флаг невидимости
+        
+        if invisible:
+            self.invisible_buttons.append(btn)
+        else:
+            self.buttons[state].append(btn)
         return btn
 
 # Создаем менеджер кнопок
 button_manager = ButtonManager()
 
-# Функции для кнопок
+# Функции для кнопок главного меню
 def start_game():
     global game_state, timer
     game_state = "playing"
@@ -192,7 +199,121 @@ def save_and_exit():
     game_state = "menu"
     previous_state = None
 
+def show_instructions():
+    global game_state, previous_state
+    previous_state = "menu"
+    game_state = "instructions"
+    print("Открыта инструкция")
+
+# --- Эффекты для колбочек ---
+def effect_hryu_hryu():
+    # хрю-хрю колба/превращает людей в свинок
+    pass
+
+def effect_kukarek():
+    # КУКАРЕКУУУУУУУУУУУ колба/превращает людей в петухов
+    pass
+
+def effect_beee_beee():
+    # беее-бееее колба/превращает людей в баранов
+    pass
+
+def effect_bigus_de_nous():
+    # бигус де ноус колба/ делает носы людей больше
+    pass
+
+def effect_bigus_de_glazus():
+    # бигус де глазус колба/ делает глаза людей больше
+    pass
+
+def effect_bigus_de_ushes():
+    # бигус де ушес колба/ делает уши людей больше
+    pass
+
+def effect_de_greatus():
+    # Де Грейтус колба/ делает кожу зеленее
+    pass
+
+def effect_de_krasnus():
+    # Де Краснус колба/ делает кожу краснее
+    pass
+
+def effect_de_bluzes():
+    # Де Блузес колба/ делает кожу синей
+    pass
+
+def effect_hop_hop_goblin():
+    # хоп-хоп-гоблин колба / делает из человека гоблина
+    pass
+
+def effect_krovosos():
+    # кровосос колба / делает из человека вампира
+    pass
+
+def effect_auuuuf():
+    # ауууууф колба / делает из человека обортня
+    pass
+
+def effect_coconat_milk():
+    # COCONAT MILK колба / делает из человека кокос
+    pass
+
+def effect_temnaya():
+    # тёмная колба / делает человека темнее
+    pass
+
+def effect_slabaya():
+    # слабая колба / делает человеку пупу
+    pass
+
+# --- Кнопки для анимаций Волтера ---
+# Позиция Волтера (у стойки)
+walter_x = 420
+walter_y = 370
+
+walter = WalterAnimation(walter_x, walter_y)
+
+# Состояния анимаций
+animation_state = "idle"  # idle, pouring, throw_bottle, throw_bomb
+
+# Для хранения последнего эффекта, чтобы вызвать после анимации
+last_effect_callback = None
+
+# Функция запуска анимации наливания с эффектом
+def play_pouring_with_effect(effect_callback):
+    global animation_state, last_effect_callback
+    if not walter.is_playing:
+        animation_state = "pouring"
+        last_effect_callback = effect_callback
+        walter.play_animation("pouring", callback=on_pouring_finished)
+
+def on_pouring_finished():
+    global last_effect_callback
+    print("Анимация наливания завершена")
+    if last_effect_callback:
+        last_effect_callback()
+        last_effect_callback = None
+
+def on_throw_bottle_finished():
+    print("Анимация броска бутылки завершена")
+
+def on_throw_bomb_finished():
+    print("Анимация броска бомбы завершена")
+
+def throw_bottle():
+    global animation_state
+    if not walter.is_playing:
+        animation_state = "throw_bottle"
+        walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
+
+def throw_bomb():
+    global animation_state
+    if not walter.is_playing:
+        animation_state = "throw_bomb"
+        walter.play_animation("throw_bomb", callback=on_throw_bomb_finished)
+
 # ========== СОЗДАЕМ КНОПКИ ПРОСТО И УДОБНО ==========
+
 # Главное меню
 button_manager.add_button(
     state="menu",
@@ -224,162 +345,111 @@ button_manager.add_button(
     y=480,
     width=300,
     height=70,
+    text="Инструкция",
+    font_size=40,
+    border_radius=12,
+    callback=show_instructions
+)
+
+button_manager.add_button(
+    state="menu",
+    x=game.width // 2 - 150,
+    y=570,
+    width=300,
+    height=70,
     text="Выход",
     font_size=40,
     border_radius=12,
     callback=exit_game
 )
 
-# Игровые кнопки (прозрачные)
+# Список эффектов для каждой кнопки (по порядку)
+effects_list = [
+    effect_hryu_hryu,
+    effect_kukarek,
+    effect_beee_beee,
+    effect_bigus_de_nous,
+    effect_bigus_de_glazus,
+    effect_bigus_de_ushes,
+    effect_de_greatus,
+    effect_de_krasnus,
+    effect_de_bluzes,
+    effect_hop_hop_goblin,
+    effect_krovosos,
+    effect_auuuuf,
+    effect_coconat_milk,
+    effect_temnaya,
+    effect_slabaya
+]
+
+# Тексты подсказок для эффектов (соответствуют effects_list)
+effects_tooltips = [
+    ("хрю-хрю колба", "превращает людей в свинок"),
+    ("КУКАРЕКУУУУУУУУУУУ колба", "превращает людей в петухов"),
+    ("беее-бееее колба", "превращает людей в баранов"),
+    ("бигус де ноус колба", "делает носы людей больше"),
+    ("бигус де глазус колба", "делает глаза людей больше"),
+    ("бигус де ушес колба", "делает уши людей больше"),
+    ("Де Грейтус колба", "делает кожу зеленее"),
+    ("Де Краснус колба", "делает кожу краснее"),
+    ("Де Блузес колба", "делает кожу синей"),
+    ("хоп-хоп-гоблин колба", "делает из человека гоблина"),
+    ("кровосос колба", "делает из человека вампира"),
+    ("ауууууф колба", "делает из человека обортня"),
+    ("COCONAT MILK колба", "делает из человека кокос"),
+    ("тёмная колба", "делает человека темнее"),
+    ("слабая колба", "делает человеку пупу")
+]
+
+action_buttons_positions = [
+    624, 650, 677, 757, 784, 810, 890, 917, 943, 1024, 1050, 1077, 1152, 1178, 1205
+]
+
+# Кнопка "Кинуть напиток" (невидимая)
 button_manager.add_button(
     state="playing",
-    x=624,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 1",
-    callback=lambda: print("Выполняется действие 1")
+    x=560,
+    y=450,
+    width=45,
+    height=80,
+    text="",  # Пустой текст
+    font_size=25,
+    border_radius=12,
+    callback=throw_bottle,
+    invisible=True  # Делаем кнопку невидимой
 )
 
+# Кнопка "Кинуть динамит" (невидимая)
 button_manager.add_button(
     state="playing",
-    x=650,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 2",
-    callback=lambda: print("Выполняется действие 2")
+    x=1114,
+    y=373,
+    width=150,
+    height=130,
+    text="",  # Пустой текст
+    font_size=25,
+    border_radius=12,
+    callback=throw_bomb,
+    invisible=True  # Делаем кнопку невидимой
 )
 
-button_manager.add_button(
-    state="playing",
-    x=677,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 3",
-    callback=lambda: print("Выполняется действие 3")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=757,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=784,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=810,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=890,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=917,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=943,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1024,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1050,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1077,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1152,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1178,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
-
-button_manager.add_button(
-    state="playing",
-    x=1205,
-    y=219,
-    width=21,
-    height=64,
-    text="Действие 4",
-    callback=lambda: print("Выполняется действие 4")
-)
+# Создаем игровые кнопки "Действие" (невидимые)
+for idx, x_pos in enumerate(action_buttons_positions):
+    effect_cb = effects_list[idx] if idx < len(effects_list) else None
+    # Замыкание для корректной передачи функции
+    def make_callback(effect_func):
+        return lambda: play_pouring_with_effect(effect_func)
+    button_manager.add_button(
+        state="playing",
+        x=x_pos,
+        y=219,
+        width=21,
+        height=64,
+        text="",  # Пустой текст
+        callback=make_callback(effect_cb),
+        effect_callback=effect_cb,
+        invisible=True  # Делаем кнопку невидимой
+    )
 
 # Кнопки для меню настроек
 button_manager.add_button(
@@ -428,6 +498,19 @@ button_manager.add_button(
     font_size=40,
     border_radius=12,
     callback=open_settings_in_game
+)
+
+# Кнопка "Назад" в инструкции
+button_manager.add_button(
+    state="instructions",
+    x=game.width // 2 - 100,
+    y=game.height - 100,
+    width=200,
+    height=50,
+    text="Назад",
+    font_size=30,
+    border_radius=10,
+    callback=back_to_menu_from_settings_main
 )
 
 # Настройки по умолчанию
@@ -510,7 +593,7 @@ class GraphicsQualitySelector:
                 base_color = (255, 230, 100)
             shadow_rect = rect.move(3, 3)
             pygame.draw.rect(surface, COLOR_DARK_GRAY, shadow_rect, border_radius=10)
-            pygame.draw.rect(surface, base_color, rect, border_radius=10)
+            pygame.draw.rect(surface, base_color[:3], rect, border_radius=10)
             text_color = COLOR_DARK_GRAY if i == self.selected_index else COLOR_WHITE
             text_surf = self.font.render(self.options[i], True, text_color)
             text_rect = text_surf.get_rect(center=rect.center)
@@ -518,110 +601,8 @@ class GraphicsQualitySelector:
 
 graphics_selector = GraphicsQualitySelector(game.width // 2 - 270, 420, graphics_quality_options, graphics_quality_index)
 
-# --- Новое: Класс для колбочек (пробирок) с подсказками ---
-class Flask:
-    def __init__(self, x, y, width, height, name, property_text, color):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.name = name
-        self.property_text = property_text
-        self.color = color  # для отрисовки колбы (цвет)
-        self.hovered = False
-
-    def draw(self, surface):
-        # Отрисовка колбы (простой прямоугольник с цветом)
-        pygame.draw.rect(surface, self.color, self.rect, border_radius=6)
-        # Нарисуем "горлышко" колбы (узкий прямоугольник сверху)
-        neck_rect = pygame.Rect(self.rect.centerx - self.rect.width // 6, self.rect.top - self.rect.height // 4, self.rect.width // 3, self.rect.height // 4)
-        pygame.draw.rect(surface, self.color, neck_rect, border_radius=4)
-
-    def is_hovered(self, mouse_pos):
-        self.hovered = self.rect.collidepoint(mouse_pos)
-        return self.hovered
-
-# --- Создаем колбочки ---
-flasks = [
-    Flask(50, 600, 40, 60, "Яд крысы", "Отравляет гостя", (180, 0, 0)),
-    Flask(110, 600, 40, 60, "Успокоительное", "Снижает агрессию", (0, 180, 180)),
-    Flask(170, 600, 40, 60, "Эликсир силы", "Увеличивает силу", (0, 180, 0)),
-]
-
-# --- Текст для подсказки ---
-tooltip_font = pygame.font.SysFont(None, 28)
-
-# --- Кнопки для анимаций Волтера ---
-# Позиция Волтера (у стойки)
-walter_x = 470
-walter_y = 420
-
-walter = WalterAnimation(walter_x, walter_y)
-
-# Состояния анимаций
-animation_state = "idle"  # idle, pouring, throw_bottle, throw_bomb
-
-# Функции для кнопок анимаций
-def on_pouring_finished():
-    print("Анимация наливания завершена")
-
-def on_throw_bottle_finished():
-    print("Анимация броска бутылки завершена")
-
-def on_throw_bomb_finished():
-    print("Анимация броска бомбы завершена")
-
-def start_pouring():
-    global animation_state
-    if not walter.is_playing:
-        animation_state = "pouring"
-        walter.play_animation("pouring", callback=on_pouring_finished)
-
-def throw_bottle():
-    global animation_state
-    if not walter.is_playing:
-        animation_state = "throw_bottle"
-        walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
-
-def throw_bomb():
-    global animation_state
-    if not walter.is_playing:
-        animation_state = "throw_bomb"
-        walter.play_animation("throw_bomb", callback=on_throw_bomb_finished)
-
-# Кнопки для управления анимациями (игровое состояние)
-button_manager.add_button(
-    state="playing",
-    x=50,
-    y=520,
-    width=160,
-    height=50,
-    text="Налить пробирку",
-    font_size=24,
-    border_radius=12,
-    callback=start_pouring
-)
-
-button_manager.add_button(
-    state="playing",
-    x=50,
-    y=580,
-    width=160,
-    height=50,
-    text="Бросить бутылку",
-    font_size=24,
-    border_radius=12,
-    callback=throw_bottle
-)
-
-button_manager.add_button(
-    state="playing",
-    x=50,
-    y=640,
-    width=160,
-    height=50,
-    text="Бросить бомбу",
-    font_size=24,
-    border_radius=12,
-    callback=throw_bomb
-)
+# Шрифт для подсказок
+tooltip_font = pygame.font.SysFont(None, 24)
 
 def update():
     global game_state, timer, bg_offset_x, volume, graphics_quality_index
@@ -630,7 +611,7 @@ def update():
     delta = game.get_delta_time()
 
     # Обновляем кнопки для текущего состояния
-    for btn in button_manager.buttons[game_state]:
+    for btn in button_manager.buttons[game_state] + button_manager.invisible_buttons:
         btn.update(delta)
 
     if game_state == "menu":
@@ -714,64 +695,98 @@ def draw():
         settings_title.rect.centerx = game.width // 2
         draw_text_with_shadow(game.screen, settings_title, shadow_offset=(3,3), shadow_color=(30,30,30))
 
+    elif game_state == "instructions":
+        # Фон инструкции
+        instructions_bg = pygame.Surface((game.width - 100, game.height - 100), pygame.SRCALPHA)
+        instructions_bg.fill((0, 0, 0, 200))
+        game.screen.blit(instructions_bg, (50, 50))
+        
+        # Заголовок инструкции
+        instruction_title = pg.Text(game.width // 2, 80, "ИНСТРУКЦИЯ", size=60, color=COLOR_YELLOW)
+        instruction_title.rect.centerx = game.width // 2
+        draw_text_with_shadow(game.screen, instruction_title)
+        
+        # Текст инструкции
+        instruction_lines = [
+            "1. Используйте колбы для создания различных эффектов",
+            "2. Нажимайте на колбы над стойкой для выбора колбы",
+            "3. Нажмите на бутылку для того чтобы ее кинуть и для применения эффекта",
+            "4. Используйте динамит для того чтобы убрать НПС",
+            "5. ESC - открыть меню паузы",
+            "",
+            "Эффекты:",
+            "- Хрю-хрю: превращает в свинок",
+            "- Кукареку: превращает в петухов",
+            "- Бигус де ноус: увеличивает носы",
+            "и другие интересные эффекты!"
+        ]
+        
+        y_offset = 150
+        instruction_font = pygame.font.SysFont(None, 32)
+        for line in instruction_lines:
+            text_surf = instruction_font.render(line, True, COLOR_WHITE)
+            game.screen.blit(text_surf, (100, y_offset))
+            y_offset += 40
+
     elif game_state == "playing":
         game.screen.blit(background_img_game, (0, 0))
         info_font = pygame.font.SysFont(None, 28)
-        info_text = info_font.render("Нажмите ESC для вызова меню паузы", True, COLOR_WHITE)
+        info_text = info_font.render("Esc - открыть меню", True, COLOR_WHITE)
         game.screen.blit(info_text, (10, 10))
 
         # Рисуем Волтера
         walter.draw(game.screen)
 
-        # Рисуем колбочки
-        mouse_pos = pygame.mouse.get_pos()
-        hovered_flask = None
-        for flask in flasks:
-            flask.draw(game.screen)
-            if flask.is_hovered(mouse_pos):
-                hovered_flask = flask
-
-        # Отрисовка подсказки (если есть наведенная колба)
-        if hovered_flask:
-            # Рисуем поле с названием и свойством чуть выше колбы
-            tooltip_x = hovered_flask.rect.x
-            tooltip_y = hovered_flask.rect.y - 60
-            draw_tooltip(game.screen, tooltip_x, tooltip_y, hovered_flask.name, hovered_flask.property_text)
-
     # Отрисовываем кнопки для текущего состояния
     mouse_pos = pygame.mouse.get_pos()
+
+    # Рисуем только видимые кнопки
     for btn in button_manager.buttons[game_state]:
-        hovered = btn.rect.collidepoint(mouse_pos)
-        
-        # Для игрового режима используем прозрачные цвета
-        if game_state == "playing":
-            base_color = COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL
-            shadow_color = (0, 0, 0, 50)  # Прозрачная тень
-        else:
-            base_color = (COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL)[:3]  # Без прозрачности
-            shadow_color = COLOR_DARK_GRAY
-        
-        # Тень
-        shadow_rect = btn.rect.move(4, 4)
-        shadow_surf = pygame.Surface((shadow_rect.width, shadow_rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(shadow_surf, shadow_color, (0, 0, shadow_rect.width, shadow_rect.height), 
-                        border_radius=btn.border_radius)
-        game.screen.blit(shadow_surf, shadow_rect)
-        
-        # Основная кнопка
-        btn_surf = pygame.Surface((btn.rect.width, btn.rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(btn_surf, base_color, (0, 0, btn.rect.width, btn.rect.height), 
-                        border_radius=btn.border_radius)
-        game.screen.blit(btn_surf, btn.rect)
-        
-        # Текст кнопки
-        btn.draw(game.screen)
+        if not btn.invisible:  # Пропускаем невидимые кнопки
+            hovered = btn.rect.collidepoint(mouse_pos)
+            
+            # Для игрового режима используем прозрачные цвета
+            if game_state == "playing":
+                base_color = COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL
+                shadow_color = (0, 0, 0, 50)  # Прозрачная тень
+            else:
+                base_color = (COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL)[:3]  # Без прозрачности
+                shadow_color = COLOR_DARK_GRAY
+            
+            # Тень
+            shadow_rect = btn.rect.move(4, 4)
+            shadow_surf = pygame.Surface((shadow_rect.width, shadow_rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(shadow_surf, shadow_color, (0, 0, shadow_rect.width, shadow_rect.height), 
+                            border_radius=btn.border_radius)
+            game.screen.blit(shadow_surf, shadow_rect)
+            
+            # Основная кнопка
+            btn_surf = pygame.Surface((btn.rect.width, btn.rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(btn_surf, base_color, (0, 0, btn.rect.width, btn.rect.height), 
+                            border_radius=btn.border_radius)
+            game.screen.blit(btn_surf, btn.rect)
+            
+            # Текст кнопки
+            btn.draw(game.screen)
+
+    # Отрисовка подсказки (tooltip) для невидимых кнопок "Действие" в игровом состоянии
+    if game_state == "playing":
+        for btn in button_manager.invisible_buttons:
+            if btn.rect.collidepoint(mouse_pos):
+                # Находим индекс кнопки в списке всех кнопок
+                all_buttons = button_manager.buttons["playing"] + button_manager.invisible_buttons
+                idx = all_buttons.index(btn)
+                # Получаем соответствующую подсказку
+                if idx-2 >= 0 and idx-2 < len(effects_tooltips):  # -2 сдвиг для первых двух кнопок
+                    name, prop = effects_tooltips[idx-2]
+                    draw_tooltip(game.screen, 10, 40, name, prop)
+                break
 
 def handle_event(event):
     global volume, graphics_quality_index, game_state
 
-    # Обрабатываем кнопки для текущего состояния
-    for btn in button_manager.buttons[game_state]:
+    # Обрабатываем все кнопки (видимые и невидимые)
+    for btn in button_manager.buttons[game_state] + button_manager.invisible_buttons:
         btn.handle_event(event)
 
     if game_state == "settings_main":
@@ -788,6 +803,8 @@ def handle_event(event):
         elif game_state == "settings_in_game":
             back_to_game_from_settings_in_game()
         elif game_state == "settings_main":
+            back_to_menu_from_settings_main()
+        elif game_state == "instructions":
             back_to_menu_from_settings_main()
         elif game_state == "menu":
             pass
