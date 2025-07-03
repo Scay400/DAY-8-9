@@ -14,7 +14,8 @@ pygame.mixer.music.set_volume(0.5)  # начальная громкость 50%
 pygame.mixer.music.play(-1)  # -1 для бесконечного повторения
 
 # Состояния игры
-game_state = "menu"  # menu, playing, settings, exploded
+game_state = "menu"  # menu, playing, settings_main, settings_in_game, exploded
+previous_state = None  # Для отслеживания откуда открыты настройки
 timer = 5.0
 
 # Цвета
@@ -30,7 +31,7 @@ COLOR_SHADOW = (0, 0, 0, 150)  # для тени
 COLOR_TEXT_MENU = (162, 162, 208)
 
 # Загрузка текстуры фона
-original_bg_img = pygame.image.load("background.jpg").convert()
+original_bg_img = pygame.image.load("background.png").convert()
 background_img = pygame.transform.scale(original_bg_img, (game.width, game.height))
 bg_offset_x = 0
 
@@ -66,8 +67,13 @@ start_button = pg.Button(button_x, button_y_start, button_width, button_height, 
 settings_button = pg.Button(button_x, button_y_start + button_height + button_gap, button_width, button_height, "Настройки", border_radius=12, font_size=40)
 exit_button = pg.Button(button_x, button_y_start + 2 * (button_height + button_gap), button_width, button_height, "Выход", border_radius=12, font_size=40)
 
-# Кнопка назад в настройках
+# Кнопка назад в настройках (для settings_main)
 back_button = pg.Button(50, game.height - 100, 150, 50, "Назад", border_radius=12, font_size=30)
+
+# --- Новые кнопки для меню настроек в игре (settings_in_game) ---
+resume_button = pg.Button(game.width // 2 - 150, 250, 300, 70, "Вернуться в игру", border_radius=12, font_size=40)
+save_exit_button = pg.Button(game.width // 2 - 150, 340, 300, 70, "Сохранить и выйти", border_radius=12, font_size=40)
+settings_in_game_button = pg.Button(game.width // 2 - 150, 430, 300, 70, "Настройки", border_radius=12, font_size=40)
 
 # Настройки по умолчанию
 volume = 0.5  # от 0.0 до 1.0
@@ -76,7 +82,8 @@ graphics_quality_index = 1  # по умолчанию "Средняя"
 
 # UI элементы меню и настроек
 menu_ui = [start_button, settings_button, exit_button]
-settings_ui = [back_button]
+settings_main_ui = [back_button]
+settings_in_game_ui = [resume_button, save_exit_button, settings_in_game_button]
 
 # Функции кнопок главного меню
 def start_game():
@@ -85,23 +92,57 @@ def start_game():
     timer = 5.0
     print("Игра началась!")
 
-def open_settings():
-    global game_state
-    game_state = "settings"
-    print("Открыты настройки")
+def open_settings_main():
+    global game_state, previous_state
+    previous_state = "menu"
+    game_state = "settings_main"
+    print("Открыты настройки из главного меню")
 
 def exit_game():
     pygame.quit()
     exit()
 
-def back_to_menu():
+def back_to_menu_from_settings_main():
+    global game_state, previous_state
+    # Возвращаемся в предыдущее состояние
+    if previous_state == "settings_in_game" or previous_state == "playing":
+        game_state = "settings_in_game" if previous_state == "settings_in_game" else "playing"
+    else:
+        game_state = "menu"
+    previous_state = None
+
+def back_to_game_from_settings_in_game():
     global game_state
+    game_state = "playing"
+
+def open_settings_in_game():
+    global game_state, previous_state
+    previous_state = "settings_in_game"
+    game_state = "settings_main"  # Открываем то же меню настроек, но с возвратом в игру
+    print("Открыты настройки из игры")
+
+def save_and_exit():
+    # Здесь можно добавить сохранение прогресса, если нужно
+    print("Сохранение и выход в меню")
+    global game_state, previous_state
     game_state = "menu"
+    previous_state = None
+
+def exit_to_menu():
+    print("Выход в главное меню")
+    global game_state, previous_state
+    game_state = "menu"
+    previous_state = None
 
 start_button.callback = start_game
-settings_button.callback = open_settings
+settings_button.callback = open_settings_main
 exit_button.callback = exit_game
-back_button.callback = back_to_menu
+
+back_button.callback = back_to_menu_from_settings_main
+
+resume_button.callback = back_to_game_from_settings_in_game
+save_exit_button.callback = save_and_exit
+settings_in_game_button.callback = open_settings_in_game
 
 # --- Реализация ползунка громкости ---
 
@@ -199,27 +240,27 @@ def update():
     global game_state, timer, bg_offset_x, volume, graphics_quality_index
     global subtitle_timer, current_subtitle_index
 
+    delta = game.get_delta_time()
+
     if game_state == "menu":
         for element in menu_ui:
-            element.update(game.get_delta_time())
+            element.update(delta)
         # Обновляем таймер для смены подзаголовка
-        subtitle_timer += game.get_delta_time()
+        subtitle_timer += delta
         if subtitle_timer >= subtitle_interval:
             subtitle_timer = 0.0
             current_subtitle_index = (current_subtitle_index + 1) % len(subtitle_texts)
-    elif game_state == "settings":
-        for element in settings_ui:
-            element.update(game.get_delta_time())
 
-    # Выход из игры по ESC
-    if pg.key_pressed(pygame.K_ESCAPE):
-        if game_state == "settings":
-            back_to_menu()
-        else:
-            pass
+    elif game_state == "settings_main":
+        for element in settings_main_ui:
+            element.update(delta)
+
+    elif game_state == "settings_in_game":
+        for element in settings_in_game_ui:
+            element.update(delta)
 
     # Обновляем смещение фона для движения
-    bg_offset_x += 50 * game.get_delta_time()
+    bg_offset_x += 50 * delta
     if bg_offset_x > game.width:
         bg_offset_x -= game.width
 
@@ -266,7 +307,7 @@ def draw():
             pygame.draw.rect(game.screen, base_color, button.rect, border_radius=button.border_radius)
             button.draw(game.screen)
 
-    elif game_state == "settings":
+    elif game_state == "settings_main":
         # Заголовок настроек с тенью
         settings_title = pg.Text(game.width // 2, 100, "Настройки", size=72, color=COLOR_YELLOW)
         settings_title.rect.centerx = game.width // 2
@@ -286,7 +327,7 @@ def draw():
 
         # Кнопка назад с тенью и эффектом наведения
         mouse_pos = pygame.mouse.get_pos()
-        for button in settings_ui:
+        for button in settings_main_ui:
             hovered = button.rect.collidepoint(mouse_pos)
             base_color = COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL
             shadow_rect = button.rect.move(4, 4)
@@ -294,20 +335,71 @@ def draw():
             pygame.draw.rect(game.screen, base_color, button.rect, border_radius=button.border_radius)
             button.draw(game.screen)
 
+    elif game_state == "settings_in_game":
+        # Заголовок меню настроек в игре
+        settings_title = pg.Text(game.width // 2, 150, "Меню паузы", size=72, color=COLOR_YELLOW)
+        settings_title.rect.centerx = game.width // 2
+        draw_text_with_shadow(game.screen, settings_title, shadow_offset=(3,3), shadow_color=(30,30,30))
+
+        mouse_pos = pygame.mouse.get_pos()
+        for button in settings_in_game_ui:
+            hovered = button.rect.collidepoint(mouse_pos)
+            base_color = COLOR_BUTTON_HOVER if hovered else COLOR_BUTTON_NORMAL
+            shadow_rect = button.rect.move(4, 4)
+            pygame.draw.rect(game.screen, COLOR_DARK_GRAY, shadow_rect, border_radius=button.border_radius)
+            pygame.draw.rect(game.screen, base_color, button.rect, border_radius=button.border_radius)
+            button.draw(game.screen)
+
+    elif game_state == "playing":
+        # Здесь можно рисовать игру
+        # Пока просто заливка фоном
+        game.screen.fill((20, 20, 40))
+
+        # Инструкция: нажмите ESC для вызова меню паузы
+        info_font = pygame.font.SysFont(None, 28)
+        info_text = info_font.render("Нажмите ESC для вызова меню паузы", True, COLOR_WHITE)
+        game.screen.blit(info_text, (10, 10))
+
 def handle_event(event):
-    global volume, graphics_quality_index
+    global volume, graphics_quality_index, game_state
 
     if game_state == "menu":
         for element in menu_ui:
             element.handle_event(event)
-    elif game_state == "settings":
-        for element in settings_ui:
+
+    elif game_state == "settings_main":
+        for element in settings_main_ui:
             element.handle_event(event)
         volume_slider.handle_event(event)
         graphics_selector.handle_event(event)
         # Обновляем значения настроек
         volume = volume_slider.value
         graphics_quality_index = graphics_selector.selected_index
+
+    elif game_state == "settings_in_game":
+        for element in settings_in_game_ui:
+            element.handle_event(event)
+
+    elif game_state == "playing":
+        # В игре можно обрабатывать другие события
+        pass
+
+    # Обработка нажатия ESC
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        if game_state == "playing":
+            # Открываем меню паузы
+            global previous_state
+            previous_state = "playing"
+            game_state = "settings_in_game"
+        elif game_state == "settings_in_game":
+            # Возврат в игру
+            back_to_game_from_settings_in_game()
+        elif game_state == "settings_main":
+            # Возврат в предыдущее состояние
+            back_to_menu_from_settings_main()
+        elif game_state == "menu":
+            # Можно не делать ничего, чтобы не мигало меню
+            pass
 
 # Добавляем обработчик событий
 game.add_event_callback(handle_event)
