@@ -3,7 +3,7 @@ import pygine as pg
 import random
 
 # Инициализация игры
-game = pg.Game(1280, 720, "Игра с взрывом")
+game = pg.Game(1280, 720, "Walter's Bar")
 
 # Инициализация микшера для звука (лучше делать до загрузки музыки)
 pygame.mixer.init()
@@ -27,6 +27,7 @@ COLOR_BUTTON_HOVER = (70, 70, 70)
 COLOR_SLIDER_BG = (60, 60, 60)
 COLOR_SLIDER_FG = (255, 215, 0)
 COLOR_SHADOW = (0, 0, 0, 150)  # для тени
+COLOR_TEXT_MENU = (162, 162, 208)
 
 # Загрузка текстуры фона
 original_bg_img = pygame.image.load("background.jpg").convert()
@@ -41,7 +42,7 @@ def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=
     text_obj.draw(surface)
 
 # Текстовые элементы меню
-menu_title = pg.Text(game.width // 2, 150, "Мистер Бармен", size=100, color=COLOR_YELLOW)
+menu_title = pg.Text(game.width // 2, 150, "Walter's Bar", size=100, color=COLOR_TEXT_MENU)
 menu_title.rect.centerx = game.width // 2
 
 # --- Добавлено: список "пасхалок" под заголовком ---
