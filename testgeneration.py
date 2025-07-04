@@ -153,10 +153,17 @@ def change():
 
     if "bignose" in debuff_list:
         bignose = True
+    else:
+        bignose = False
     if "bigeye" in debuff_list:
         bigeye = True
+    else:
+        bigeye = False
     if "bigear" in debuff_list:
         bigear = True
+    else:
+        bignose = False
+
 
     if "vampire" in debuff_list:
         npc.gclothing = "special"
@@ -193,6 +200,8 @@ def update():
     scale_factor = 3.0  # Масштаб (1.0 - оригинальный размер)
     for sprite in [k_body, k_clothing,k_hair,k_head]:
         set_scale(sprite, scale_factor)
+
+    
     if bignose == True:
         set_scale(k_nose,3.5)
     else:
@@ -209,11 +218,12 @@ def update():
 
 
 
-    if pg.key_just_pressed(pygame.K_z):  
+    if pg.key_just_pressed(pygame.K_z): 
 
         debuff_list.clear()
 
         npc.randomize()
+
 
         k_body = pg.AnimatedSprite('NPC/body.png',(38,65),(300,300))
         k_clothing = pg.AnimatedSprite('NPC/clothing/'+npc.gender+'/'+npc.clothing+'.png',(38,65),(k_body.x,k_body.y))

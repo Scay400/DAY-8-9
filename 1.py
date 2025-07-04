@@ -626,8 +626,6 @@ def update():
 
     pygame.mixer.music.set_volume(volume_slider.value)
 
-    walter.set_scale(2.0)
-
     # Обновляем анимацию Волтера если в игре
     if game_state == "playing":
         walter.update(delta)

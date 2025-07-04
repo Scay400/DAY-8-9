@@ -321,7 +321,7 @@ menu_title = pg.Text(game.width // 2, 150, "Walter's Bar", size=100, color=COLOR
 menu_title.rect.centerx = game.width // 2
 
 # Список "пасхалок" под заголовком
-subtitle_texts = ["Подмешайте крысиный яд", "Привет"]
+subtitle_texts = ["Подмешайте крысиный яд", "Добро Пожаловать в игру!","Не хотите попить кокосового молока?","also play MrFurry"]
 current_subtitle_index = random.randint(0, len(subtitle_texts) - 1)
 subtitle_timer = 0.0
 subtitle_interval = 2.0
@@ -415,77 +415,77 @@ def show_instructions():
 def effect_hryu_hryu():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('pig')
-    print("хрю-хрю колба/превращает людей в свинок")
+    print("Колба Хряка/Превращает людей в свинок")
 
 def effect_kukarek():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('cock')
-    print("КУКАРЕКУУУУУУУУУУУ колба/превращает людей в петухов")
+    print("Колба Пташки/Превращает людей в петухов")
 
 def effect_beee_beee():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('ram')
-    print("беее-бееее колба/превращает людей в баранов")
+    print("Колба бэ-э-э/Превращает людей в баранов")
 
 def effect_bigus_de_nous():
     if not "bignose" in current_client.debuff_list:
         current_client.debuff_list.append('bignose')
-    print("бигус де ноус колба/ делает носы людей больше")
+    print("Нос-великус/ Делает носы людей больше")
 
 def effect_bigus_de_glazus():
     if not "bigeye" in current_client.debuff_list:
         current_client.debuff_list.append('bigeye')
-    print("бигус де глазус колба/ делает глаза людей больше")
+    print("Глаза страха/ делает глаза людей больше")
 
 def effect_bigus_de_ushes():
     if not "bigear" in current_client.debuff_list:
         current_client.debuff_list.append('bigear')
-    print("бигус де ушес колба/ делает уши людей больше")
+    print("Увелечение ушей/ делает уши людей больше")
 
 def effect_de_greatus():
     if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
         current_client.debuff_list.append('green')
-    print("Де Грейтус колба/ делает кожу зеленее")
+    print("Зелёнка/ делает кожу зеленой")
 
 def effect_de_krasnus():
     if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
         current_client.debuff_list.append('red')
-    print("Де Краснус колба/ делает кожу краснее")
+    print("Помидор/ делает кожу красной")
 
 def effect_de_bluzes():
     if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
         current_client.debuff_list.append('blue')
-    print("Де Блузес колба/ делает кожу синей")
+    print("Блю Баттерфляй/ делает кожу синей")
 
 def effect_hop_hop_goblin():
     if not "red" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
         current_client.debuff_list.append('goblin')
-    print("хоп-хоп-гоблин колба / делает из человека гоблина")
+    print("Гоблин колба/ делает из человека гоблина")
 
 def effect_krovosos():
     if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
         current_client.debuff_list.append('vampire')
-    print("кровосос колба / делает из человека вампира")
+    print("Дракула/ делает из человека вампира")
 
 def effect_auuuuf():
     if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
         current_client.debuff_list.append('werewolf')
-    print("ауууууф колба / делает из человека оборотня")
+    print("Полночь/ делает из человека оборотня")
 
 def effect_coconat_milk():
     if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
         current_client.debuff_list.append('coconut')
-    print("COCONAT MILK колба / делает из человека кокос")
+    print("Кокосовое Молоко/ делает из человека кокос")
 
 def effect_temnaya():
     if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
         current_client.debuff_list.append('black')
-    print("тёмная колба / делает человека темнее")
+    print("Колба тёмности/ делает человека темнее")
 
 def effect_slabaya():
     if not "poop" in current_client.debuff_list:
         current_client.debuff_list.append('poop')
-    print("слабая колба / делает человеку пупу")
+    print("Колба поноса / Заставляет человека справить нужду прямо перед вами")
 
 # Позиция Волтера (у стойки)
 walter_x = 420
@@ -521,9 +521,10 @@ def on_throw_bomb_finished():
 
 def throw_bottle():
     global animation_state
-    if not walter.is_playing:
-        animation_state = "throw_bottle"
-        walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
+    if len(current_client.debuff_list) > 0:
+        if not walter.is_playing:
+            animation_state = "throw_bottle"
+            walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
 
 def throw_bomb():
     global animation_state
@@ -603,21 +604,21 @@ effects_list = [
 
 # Тексты подсказок для эффектов (соответствуют новому порядку)
 effects_tooltips = [
-    ("хрю-хрю колба", "превращает людей в свинок"),
-    ("КУКАРЕКУУУУУУУУУУУ колба", "превращает людей в петухов"),
-    ("беее-бееее колба", "превращает людей в баранов"),
-    ("бигус де ноус колба", "делает носы людей больше"),
-    ("бигус де глазус колба", "делает глаза людей больше"),
-    ("бигус де ушес колба", "делает уши людей больше"),
-    ("Де Краснус колба", "делает кожу краснее"),       # поменяли местами с зелёной
-    ("Де Грейтус колба", "делает кожу зеленее"),       # поменяли местами с красной
-    ("Де Блузес колба", "делает кожу синей"),
-    ("хоп-хоп-гоблин колба", "делает из человека гоблина"),
-    ("кровосос колба", "делает из человека вампира"),
-    ("ауууууф колба", "делает из человека обортня"),
-    ("тёмная колба", "делает человека темнее"),        # поменяли местами с COCONAT MILK
-    ("COCONAT MILK колба", "делает из человека кокос"), # поменяли местами с тёмной
-    ("слабая колба", "делает человеку пупу")
+    ("Колба Хряков", "превращает людей в свинок"),
+    ("Колба Кукареку", "превращает людей в петухов"),
+    ("Колба бэ-э-э", "превращает людей в баранов"),
+    ("Увеличение носа", "делает носы людей больше"),
+    ("Увеличение глаз", "делает глаза людей больше"),
+    ("Увеличение ушей", "делает уши людей больше"),
+    ("Помидор", "делает кожу красной"),       # поменяли местами с зелёной
+    ("Зелёнка", "делает кожу зеленой"),       # поменяли местами с красной
+    ("БлюГай", "делает кожу синей"),
+    ("Колба Гоблина", "делает из человека гоблина"),
+    ("Дракула", "делает из человека вампира"),
+    ("Проклятье Полночь", "делает из человека обортня"),
+    ("Колба темноты", "делает человека темнее"),        # поменяли местами с COCONAT MILK
+    ("Кокосовое Молоко", "делает из человека кокос"), # поменяли местами с тёмной
+    ("Слабительное", "Заставит гостя справить нужду у вас на глазах")
 ]
 
 action_buttons_positions = [
