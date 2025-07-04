@@ -1,6 +1,7 @@
 import pygame
 import pygine as pg
 import random
+import os
 
 # Инициализация игры
 game = pg.Game(1280, 720, "Walter's Bar")
@@ -12,6 +13,27 @@ pygame.mixer.init()
 pygame.mixer.music.load("crs.mp3")
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
+
+# Загрузка звуковых эффектов
+sound_effects = {}
+sound_files = {
+    'cock': 'cock.mp3',
+    'explosion': 'expl.mp3',
+    'pig': 'pig.mp3',
+    'ponos': 'ponos.mp3',
+    'ram': 'ram.mp3',
+    'throw': 'throw.mp3',
+    'water': 'water.mp3'
+}
+
+for name, file in sound_files.items():
+    try:
+        if os.path.exists(file):
+            sound_effects[name] = pygame.mixer.Sound(file)
+        else:
+            print(f"Warning: Sound file {file} not found!")
+    except Exception as e:
+        print(f"Error loading sound {file}: {e}")
 
 # Состояния игры
 game_state = "menu"  # menu, playing, settings_main, settings_in_game, exploded, instructions
@@ -48,6 +70,17 @@ FRAME_HEIGHT = 100
 SHEET_COLUMNS = 7  # 7 кадров в ряду
 SHEET_ROWS = 3     # 3 ряда
 
+# Загрузка спрайт-листа взрыва
+try:
+    explosion_sheet = pygame.image.load("explosion_sprites.png").convert_alpha()
+    EXPLOSION_FRAME_WIDTH = 130
+    EXPLOSION_FRAME_HEIGHT = 130
+    EXPLOSION_COLUMNS = 5
+    EXPLOSION_ROWS = 5
+    EXPLOSION_TOTAL_FRAMES = 24  # Последний кадр пустой
+except Exception as e:
+    print(f"Error loading explosion sprites: {e}")
+    explosion_sheet = None
 
 # Функция для вырезки кадра из спрайт-листа
 def get_frame(sheet, frame_index):
@@ -106,6 +139,47 @@ class WalterAnimation:
         frame = get_frame(walter_spritesheet_img, frame_id)
         scaled_frame = pygame.transform.scale(frame, (FRAME_WIDTH * 4, FRAME_HEIGHT * 4))
         surface.blit(scaled_frame, (self.x, self.y - FRAME_HEIGHT))
+
+# Класс анимации взрыва
+class ExplosionAnimation:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.current_frame = 0
+        self.frame_timer = 0.0
+        self.frame_duration = 0.05  # 50 мс на кадр
+        self.is_playing = True
+        self.scale = 3.2  # Масштаб взрыва
+
+    def update(self, delta):
+        if not self.is_playing:
+            return
+        self.frame_timer += delta
+        if self.frame_timer >= self.frame_duration:
+            self.frame_timer -= self.frame_duration
+            self.current_frame += 1
+            if self.current_frame >= EXPLOSION_TOTAL_FRAMES:
+                self.is_playing = False
+
+    def draw(self, surface):
+        if not self.is_playing or not explosion_sheet:
+            return
+            
+        # Рассчитываем позицию кадра
+        row = self.current_frame // EXPLOSION_COLUMNS
+        col = self.current_frame % EXPLOSION_COLUMNS
+        rect = pygame.Rect(col * EXPLOSION_FRAME_WIDTH, 
+                          row * EXPLOSION_FRAME_HEIGHT, 
+                          EXPLOSION_FRAME_WIDTH, 
+                          EXPLOSION_FRAME_HEIGHT)
+        
+        frame = explosion_sheet.subsurface(rect)
+        scaled_width = int(EXPLOSION_FRAME_WIDTH * self.scale)
+        scaled_height = int(EXPLOSION_FRAME_HEIGHT * self.scale)
+        scaled_frame = pygame.transform.scale(frame, (scaled_width, scaled_height))
+        
+        # Позиционируем взрыв по центру
+        surface.blit(scaled_frame, (self.x - scaled_width // 2, self.y - scaled_height // 2))
 
 # Класс клиента
 class Klient():
@@ -318,6 +392,13 @@ class Klient():
         
         if self.race == "human" and self.k_hair:
             surface.blit(self.k_hair.image, self.k_hair.rect)
+            
+    def get_position(self):
+        """Возвращает позицию клиента"""
+        if self.k_body:
+            return self.k_body.rect.center
+        return (400, 420)  # Позиция по умолчанию
+
 # Отрисовка текста с тенью
 def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=(0,0,0)):
     shadow_pos = (text_obj.rect.x + shadow_offset[0], text_obj.rect.y + shadow_offset[1])
@@ -349,7 +430,7 @@ class ButtonManager:
     
     def add_button(self, state, x, y, width, height, text, 
                   font_size=30, border_radius=10, 
-                  callback=None, colors=None, effect_callback=None, invisible=False):
+                  callback=None, effect_callback=None, invisible=False):
         """Добавляет новую кнопку в указанное состояние"""
         btn = pg.Button(x, y, width, height, text, 
                        border_radius=border_radius, 
@@ -372,6 +453,9 @@ button_manager = ButtonManager()
 
 # Создаем клиента
 current_client = Klient()
+
+# Список активных взрывов
+explosions = []
 
 # Функции для кнопок главного меню
 def start_game():
@@ -425,15 +509,20 @@ def effect_hryu_hryu():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('pig')
     print("Колба Хряка/Превращает людей в свинок")
+    # Убрал sound_effects['pig'].play() отсюда
 
 def effect_kukarek():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('cock')
+    if 'cock' in sound_effects:
+        sound_effects['cock'].play()
     print("Колба Пташки/Превращает людей в петухов")
 
 def effect_beee_beee():
     if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
         current_client.debuff_list.append('ram')
+    if 'ram' in sound_effects:
+        sound_effects['ram'].play()
     print("Колба бэ-э-э/Превращает людей в баранов")
 
 def effect_bigus_de_nous():
@@ -494,6 +583,8 @@ def effect_temnaya():
 def effect_slabaya():
     if not "poop" in current_client.debuff_list:
         current_client.debuff_list.append('poop')
+    if 'ponos' in sound_effects:
+        sound_effects['ponos'].play()
     print("Колба поноса / Заставляет человека справить нужду прямо перед вами")
 
 # Позиция Волтера (у стойки)
@@ -511,6 +602,9 @@ def play_pouring_with_effect(effect_callback):
         animation_state = "pouring"
         last_effect_callback = effect_callback
         walter.play_animation("pouring", callback=on_pouring_finished)
+        # Воспроизводим звук наливания
+        if 'water' in sound_effects:
+            sound_effects['water'].play()
 
 def on_pouring_finished():
     global last_effect_callback
@@ -521,12 +615,24 @@ def on_pouring_finished():
 
 def on_throw_bottle_finished():
     print("Анимация броска бутылки завершена")
+    # Воспроизводим звук эффекта, если он есть
+    for effect in current_client.debuff_list:
+        if effect in sound_effects:
+            sound_effects[effect].play()
     current_client.apply_changes()
 
 def on_throw_bomb_finished():
     print("Анимация броска бомбы завершена")
-    current_client.randomize()
-    current_client.create_sprites()
+    # Создаем взрыв на месте клиента
+    client_pos = current_client.get_position()
+    explosions.append(ExplosionAnimation(client_pos[0], client_pos[1]))
+    
+    # Воспроизводим только звук взрыва
+    if 'explosion' in sound_effects:
+        sound_effects['explosion'].play()
+    
+    # Через короткую задержку обновляем клиента
+    pygame.time.set_timer(pygame.USEREVENT, 500)  # 500 мс задержка
 
 def throw_bottle():
     global animation_state
@@ -534,12 +640,18 @@ def throw_bottle():
         if not walter.is_playing:
             animation_state = "throw_bottle"
             walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
+            # Воспроизводим звук броска
+            if 'throw' in sound_effects:
+                sound_effects['throw'].play()
 
 def throw_bomb():
     global animation_state
     if not walter.is_playing:
         animation_state = "throw_bomb"
         walter.play_animation("throw_bomb", callback=on_throw_bomb_finished)
+        # Воспроизводим звук броска
+        if 'throw' in sound_effects:
+            sound_effects['throw'].play()
 
 # ========== СОЗДАЕМ КНОПКИ ПРОСТО И УДОБНО ==========
 
@@ -835,7 +947,7 @@ tooltip_font = pygame.font.SysFont(None, 24)
 
 def update():
     global game_state, timer, bg_offset_x, volume, graphics_quality_index
-    global subtitle_timer, current_subtitle_index
+    global subtitle_timer, current_subtitle_index, explosions
 
     delta = game.get_delta_time()
 
@@ -858,6 +970,12 @@ def update():
     # Обновляем анимацию Волтера если в игре
     if game_state == "playing":
         walter.update(delta)
+        
+        # Обновляем анимации взрывов
+        for explosion in explosions[:]:
+            explosion.update(delta)
+            if not explosion.is_playing:
+                explosions.remove(explosion)
 
 def draw_tooltip(surface, x, y, name, property_text):
     padding = 8
@@ -961,11 +1079,15 @@ def draw():
         info_text = info_font.render("Esc - открыть меню", True, COLOR_WHITE)
         game.screen.blit(info_text, (10, 10))
 
-        # Рисуем Волтера
-        walter.draw(game.screen)
-        
         # Рисуем клиента
         current_client.draw(game.screen)
+        
+        # Рисуем взрывы
+        for explosion in explosions:
+            explosion.draw(game.screen)
+            
+        # Рисуем Волтера поверх всего
+        walter.draw(game.screen)
 
     # Отрисовываем кнопки для текущего состояния
     mouse_pos = pygame.mouse.get_pos()
@@ -1013,7 +1135,7 @@ def draw():
                 break
 
 def handle_event(event):
-    global volume, graphics_quality_index, game_state
+    global volume, graphics_quality_index, game_state, current_client, explosions
 
     # Обрабатываем все кнопки (видимые и невидимые)
     for btn in button_manager.buttons[game_state] + button_manager.invisible_buttons:
@@ -1038,6 +1160,12 @@ def handle_event(event):
             back_to_menu_from_settings_main()
         elif game_state == "menu":
             pass
+            
+    # Обработка таймера для обновления клиента после взрыва
+    if event.type == pygame.USEREVENT:
+        current_client.randomize()
+        current_client.create_sprites()
+        pygame.time.set_timer(pygame.USEREVENT, 0)  # Отключаем таймер
 
 game.add_event_callback(handle_event)
 
