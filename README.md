@@ -1,4 +1,4 @@
-![Меню игры]()
+![Меню игры](https://github.com/Scay400/DAY-8-9/blob/main/pic.png)
 # Walter's Bar
 
 ## Установка и запуск
