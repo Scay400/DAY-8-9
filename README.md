@@ -21,7 +21,7 @@
 
 ### 3. Перейдите в папку проекта
 
-```cd HackatonDay5```
+```cd DAY-8-9```
 
 ### 4. Установите необходимые зависимости
 
@@ -30,10 +30,10 @@
 ### 5. Запустите игру
 
 На Windows:  
-`python app.py`
+`python main.py`
 
 На macOS/Linux:  
-`python3 app.py`
+`python3 main.py`
 
 ---
 
