@@ -48,6 +48,7 @@ FRAME_HEIGHT = 100
 SHEET_COLUMNS = 7  # 7 кадров в ряду
 SHEET_ROWS = 3     # 3 ряда
 
+
 # Функция для вырезки кадра из спрайт-листа
 def get_frame(sheet, frame_index):
     col = frame_index % SHEET_COLUMNS
@@ -106,6 +107,217 @@ class WalterAnimation:
         scaled_frame = pygame.transform.scale(frame, (FRAME_WIDTH * 4, FRAME_HEIGHT * 4))
         surface.blit(scaled_frame, (self.x, self.y - FRAME_HEIGHT))
 
+# Класс клиента
+class Klient():
+    def __init__(self):
+        self.gender = None
+        self.gclothing = None
+        self.clothing = None
+        self.hair = None
+        self.race = "human"
+        self.skin = "standart"
+        self.wish_text = None
+        self.debuff_list = []
+        self.bignose = False
+        self.bigeye = False
+        self.bigear = False
+        
+        self.randomize()
+        
+        # Спрайты клиента
+        self.k_body = None
+        self.k_clothing = None
+        self.k_ear = None
+        self.k_eye = None
+        self.k_nose = None
+        self.k_hair = None
+        self.k_head = None
+        
+        self.create_sprites()
+    
+    def set_scale(self, sprite, scale):
+        if not hasattr(sprite, 'original_image'):
+            sprite.original_image = sprite.image
+        
+        original_rect = sprite.original_image.get_rect()
+        new_width = int(original_rect.width * scale)
+        new_height = int(original_rect.height * scale)
+        
+        scaled_image = pygame.transform.scale(sprite.original_image, (new_width, new_height))
+        sprite.image = scaled_image
+        sprite.rect = scaled_image.get_rect(center=sprite.rect.center)
+    
+    def get_fallback_sprite(self, path, default_path):
+        try:
+            return pg.AnimatedSprite(path, (38,65), (self.k_body.x, self.k_body.y))
+        except:
+            return pg.AnimatedSprite(default_path, (38,65), (self.k_body.x, self.k_body.y))
+    
+    def create_sprites(self):
+        try:
+            # Основные спрайты
+            self.k_body = pg.AnimatedSprite('NPC/body.png', (38,65), (400, 420))
+            
+            # Голова (основа для позиционирования волос)
+            head_path = f'NPC/heads/{self.skin}/{self.race}.png'
+            default_head_path = f'NPC/heads/{self.skin}/human.png'
+            self.k_head = self.get_fallback_sprite(head_path, default_head_path)
+            
+            # Одежда
+            clothing_path = f'NPC/clothing/{self.gclothing}/{self.clothing}.png'
+            self.k_clothing = pg.AnimatedSprite(clothing_path, (38,65), (self.k_body.x, self.k_body.y))
+            
+            # Уши
+            ear_path = f'NPC/ears/{self.skin}/{self.race}.png'
+            default_ear_path = f'NPC/ears/{self.skin}/human.png'
+            self.k_ear = self.get_fallback_sprite(ear_path, default_ear_path)
+            
+            # Глаза
+            eye_path = 'NPC/eyes/cock.png' if self.race == "cock" else 'NPC/eyes/human.png'
+            self.k_eye = pg.AnimatedSprite(eye_path, (38,65), (self.k_body.x, self.k_body.y))
+            
+            # Нос
+            if "goblin" in self.debuff_list:
+                nose_path = 'NPC/noses/special/goblin.png'
+            else:
+                nose_path = f'NPC/noses/{self.skin}/{self.race}.png'
+                default_nose_path = f'NPC/noses/{self.skin}/human.png'
+                self.k_nose = self.get_fallback_sprite(nose_path, default_nose_path)
+            
+            # Волосы - позиционируем относительно головы
+            if self.race == "human":
+                # Используем сохраненный тип прически вместо random
+                hair_path = f'NPC/hair/{self.gender}/{self.hair}.png'
+                self.k_hair = pg.AnimatedSprite(hair_path, (38,65), (self.k_head.x, self.k_head.y - 10))
+                
+                # Подгоняем размер волос под размер головы
+                if hasattr(self.k_head, 'rect') and hasattr(self.k_hair, 'rect'):
+                    # Выравниваем по центру головы
+                    self.k_hair.rect.centerx = self.k_head.rect.centerx
+                    self.k_hair.rect.top = self.k_head.rect.top - 5  # Небольшое смещение вверх
+            
+            # Масштабирование
+            scale_factor = 4.0
+            for sprite in [self.k_body, self.k_clothing, self.k_head, self.k_ear, self.k_eye, self.k_nose, self.k_hair]:
+                if sprite:
+                    self.set_scale(sprite, scale_factor)
+                    
+            # Дополнительное масштабирование
+            self.set_scale(self.k_nose, 4.5 if self.bignose else 4.0)
+            self.set_scale(self.k_ear, 4.5 if self.bigear else 4.0)
+            self.set_scale(self.k_eye, 4.5 if self.bigeye else 4.0)
+            
+        except Exception as e:
+            print(f"Error loading sprite: {e}")
+            self.create_fallback_sprites()
+            
+    def create_fallback_sprites(self):
+        """Создает спрайты с использованием стандартных изображений при ошибках"""
+        try:
+            self.k_body = pg.AnimatedSprite('NPC/body.png', (38,65), (200, 400))
+            self.k_head = pg.AnimatedSprite(f'NPC/heads/{self.skin}/human.png', (38,65), (self.k_body.x, self.k_body.y))
+            self.k_clothing = pg.AnimatedSprite(f'NPC/clothing/{self.gclothing}/{self.clothing}.png', (38,65), (self.k_body.x, self.k_body.y))
+            self.k_ear = pg.AnimatedSprite(f'NPC/ears/{self.skin}/human.png', (38,65), (self.k_body.x, self.k_body.y))
+            self.k_eye = pg.AnimatedSprite('NPC/eyes/human.png', (38,65), (self.k_body.x, self.k_body.y))
+            self.k_nose = pg.AnimatedSprite(f'NPC/noses/{self.skin}/human.png', (38,65), (self.k_body.x, self.k_body.y))
+            
+            if self.race == "human":
+                # Используем сохраненный тип прически
+                self.k_hair = pg.AnimatedSprite(
+                    f'NPC/hair/{self.gender}/{self.hair}.png', 
+                    (38,65), 
+                    (self.k_body.x, self.k_body.y)
+                )
+            else:
+                self.k_hair = None
+        except Exception as e:
+            print(f"Critical error loading fallback sprites: {e}")
+    
+    def randomize(self):
+        self.gender = random.choice(["male","female"])    
+        self.debuff_list = []
+        
+        self.bignose = False
+        self.bigeye = False
+        self.bigear = False
+
+        if self.gender == "male":
+            self.gclothing = "male"
+            self.clothing = random.choice(["suit","sportswear","casual"])
+            self.hair = f"hear{random.randint(1, 3)}"  # Сохраняем тип прически
+        else:
+            self.gclothing = "female"
+            self.clothing = random.choice(["dress","casual","casual2"])
+            self.hair = f"hear{random.randint(1, 3)}"  # Сохраняем тип прически
+
+        self.race = "human"
+        self.skin = "standart"
+        self.wish_text = None
+    
+    def apply_changes(self):
+        # Сохраняем текущие параметры перед изменениями
+        old_race = self.race
+        old_skin = self.skin
+        old_hair = self.hair
+        
+        if "pig" in self.debuff_list:
+            self.race = "pig"
+        elif "ram" in self.debuff_list:
+            self.race = "ram" 
+        elif "cock" in self.debuff_list:
+            self.race = "cock"   
+
+        if "red" in self.debuff_list:
+            self.skin = "red"
+        elif "green" in self.debuff_list:
+            self.skin = "green"
+        elif "blue" in self.debuff_list:
+            self.skin = "blue"
+        elif "black" in self.debuff_list:
+            self.skin = "black"
+        elif "goblin" in self.debuff_list:
+            self.skin = "green"
+
+        self.bignose = "bignose" in self.debuff_list
+        self.bigeye = "bigeye" in self.debuff_list
+        self.bigear = "bigear" in self.debuff_list
+
+        if "vampire" in self.debuff_list:
+            self.gclothing = "special"
+            self.clothing = "vampire"
+        elif "werewolf" in self.debuff_list:
+            self.gclothing = "special"
+            self.clothing = "werewolf"
+        elif "coconut" in self.debuff_list:
+            self.gclothing = "special"
+            self.clothing = "coconut"
+        
+        # Пересоздаем спрайты с новыми параметрами
+        try:
+            self.create_sprites()
+        except:
+            # Если не удалось создать спрайты с новыми параметрами, возвращаем старые
+            self.race = old_race
+            self.skin = old_skin
+            self.hair = old_hair
+            self.create_sprites()
+    
+    def draw(self, surface):
+        if not all([self.k_body, self.k_clothing, self.k_head, self.k_ear, self.k_eye, self.k_nose]):
+            return
+            
+        surface.blit(self.k_body.image, self.k_body.rect)
+        surface.blit(self.k_head.image, self.k_head.rect)
+        surface.blit(self.k_clothing.image, self.k_clothing.rect)
+        
+        if self.race != "cock":
+            surface.blit(self.k_ear.image, self.k_ear.rect)
+            
+        surface.blit(self.k_eye.image, self.k_eye.rect)
+        surface.blit(self.k_nose.image, self.k_nose.rect)
+        
+        if self.race == "human" and self.k_hair:
+            surface.blit(self.k_hair.image, self.k_hair.rect)
 # Отрисовка текста с тенью
 def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=(0,0,0)):
     shadow_pos = (text_obj.rect.x + shadow_offset[0], text_obj.rect.y + shadow_offset[1])
@@ -114,11 +326,11 @@ def draw_text_with_shadow(surface, text_obj, shadow_offset=(2, 2), shadow_color=
     text_obj.draw(surface)
 
 # Текстовые элементы меню
-menu_title = pg.Text(game.width // 2, 150, "Walter's Bar", size=100, color=COLOR_TEXT_MENU)
+menu_title = pg.Text(game.width // 2, 120, "Walter's Bar", size=80, color=COLOR_TEXT_MENU, font_path= "./Font/Font.ttf")
 menu_title.rect.centerx = game.width // 2
 
 # Список "пасхалок" под заголовком
-subtitle_texts = ["Подмешайте крысиный яд", "Привет"]
+subtitle_texts = ["Подмешайте крысиный яд", "Добро Пожаловать в игру!","Не хотите попить кокосового молока?","also play MrFurry"]
 current_subtitle_index = random.randint(0, len(subtitle_texts) - 1)
 subtitle_timer = 0.0
 subtitle_interval = 2.0
@@ -157,6 +369,9 @@ class ButtonManager:
 
 # Создаем менеджер кнопок
 button_manager = ButtonManager()
+
+# Создаем клиента
+current_client = Klient()
 
 # Функции для кнопок главного меню
 def start_game():
@@ -207,74 +422,84 @@ def show_instructions():
 
 # --- Эффекты для колбочек ---
 def effect_hryu_hryu():
-    # хрю-хрю колба/превращает людей в свинок
-    pass
+    if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
+        current_client.debuff_list.append('pig')
+    print("Колба Хряка/Превращает людей в свинок")
 
 def effect_kukarek():
-    # КУКАРЕКУУУУУУУУУУУ колба/превращает людей в петухов
-    pass
+    if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
+        current_client.debuff_list.append('cock')
+    print("Колба Пташки/Превращает людей в петухов")
 
 def effect_beee_beee():
-    # беее-бееее колба/превращает людей в баранов
-    pass
+    if not "cock" in current_client.debuff_list and not "ram" in current_client.debuff_list and not "pig" in current_client.debuff_list and not "goblin" in current_client.debuff_list:
+        current_client.debuff_list.append('ram')
+    print("Колба бэ-э-э/Превращает людей в баранов")
 
 def effect_bigus_de_nous():
-    # бигус де ноус колба/ делает носы людей больше
-    pass
+    if not "bignose" in current_client.debuff_list:
+        current_client.debuff_list.append('bignose')
+    print("Нос-великус/ Делает носы людей больше")
 
 def effect_bigus_de_glazus():
-    # бигус де глазус колба/ делает глаза людей больше
-    pass
+    if not "bigeye" in current_client.debuff_list:
+        current_client.debuff_list.append('bigeye')
+    print("Глаза страха/ делает глаза людей больше")
 
 def effect_bigus_de_ushes():
-    # бигус де ушес колба/ делает уши людей больше
-    pass
+    if not "bigear" in current_client.debuff_list:
+        current_client.debuff_list.append('bigear')
+    print("Увелечение ушей/ делает уши людей больше")
 
 def effect_de_greatus():
-    # Де Грейтус колба/ делает кожу зеленее
-    pass
+    if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
+        current_client.debuff_list.append('green')
+    print("Зелёнка/ делает кожу зеленой")
 
 def effect_de_krasnus():
-    # Де Краснус колба/ делает кожу краснее
-    pass
+    if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
+        current_client.debuff_list.append('red')
+    print("Помидор/ делает кожу красной")
 
 def effect_de_bluzes():
-    # Де Блузес колба/ делает кожу синей
-    pass
+    if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
+        current_client.debuff_list.append('blue')
+    print("Блю Баттерфляй/ делает кожу синей")
 
 def effect_hop_hop_goblin():
-    # хоп-хоп-гоблин колба / делает из человека гоблина
-    pass
+    if not "red" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
+        current_client.debuff_list.append('goblin')
+    print("Гоблин колба/ делает из человека гоблина")
 
 def effect_krovosos():
-    # кровосос колба / делает из человека вампира
-    pass
+    if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
+        current_client.debuff_list.append('vampire')
+    print("Дракула/ делает из человека вампира")
 
 def effect_auuuuf():
-    # ауууууф колба / делает из человека обортня
-    pass
+    if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
+        current_client.debuff_list.append('werewolf')
+    print("Полночь/ делает из человека оборотня")
 
 def effect_coconat_milk():
-    # COCONAT MILK колба / делает из человека кокос
-    pass
+    if not "coconut" in current_client.debuff_list and not "werewolf" in current_client.debuff_list and not "vampire" in current_client.debuff_list:
+        current_client.debuff_list.append('coconut')
+    print("Кокосовое Молоко/ делает из человека кокос")
 
 def effect_temnaya():
-    # тёмная колба / делает человека темнее
-    pass
+    if not "red" in current_client.debuff_list and not "green" in current_client.debuff_list and not "blue" in current_client.debuff_list and not "goblin" in current_client.debuff_list and not "black" in current_client.debuff_list:
+        current_client.debuff_list.append('black')
+    print("Колба тёмности/ делает человека темнее")
 
 def effect_slabaya():
-    # слабая колба / делает человеку пупу
-    pass
+    if not "poop" in current_client.debuff_list:
+        current_client.debuff_list.append('poop')
+    print("Колба поноса / Заставляет человека справить нужду прямо перед вами")
 
-# --- Кнопки для анимаций Волтера ---
 # Позиция Волтера (у стойки)
 walter_x = 420
 walter_y = 370
-
 walter = WalterAnimation(walter_x, walter_y)
-
-# Состояния анимаций
-animation_state = "idle"  # idle, pouring, throw_bottle, throw_bomb
 
 # Для хранения последнего эффекта, чтобы вызвать после анимации
 last_effect_callback = None
@@ -296,15 +521,19 @@ def on_pouring_finished():
 
 def on_throw_bottle_finished():
     print("Анимация броска бутылки завершена")
+    current_client.apply_changes()
 
 def on_throw_bomb_finished():
     print("Анимация броска бомбы завершена")
+    current_client.randomize()
+    current_client.create_sprites()
 
 def throw_bottle():
     global animation_state
-    if not walter.is_playing:
-        animation_state = "throw_bottle"
-        walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
+    if len(current_client.debuff_list) > 0:
+        if not walter.is_playing:
+            animation_state = "throw_bottle"
+            walter.play_animation("throw_bottle", callback=on_throw_bottle_finished)
 
 def throw_bomb():
     global animation_state
@@ -365,40 +594,40 @@ button_manager.add_button(
 
 # Список эффектов для каждой кнопки (по порядку)
 effects_list = [
-    effect_hryu_hryu,
-    effect_kukarek,
-    effect_beee_beee,
-    effect_bigus_de_nous,
-    effect_bigus_de_glazus,
-    effect_bigus_de_ushes,
-    effect_de_greatus,
-    effect_de_krasnus,
-    effect_de_bluzes,
-    effect_hop_hop_goblin,
-    effect_krovosos,
-    effect_auuuuf,
-    effect_coconat_milk,
-    effect_temnaya,
-    effect_slabaya
+    effect_hryu_hryu,    # хрю-хрю (свинья)
+    effect_kukarek,      # кукареку (петух)
+    effect_beee_beee,    # беее (баран)
+    effect_bigus_de_nous, # бигус де ноус (нос)
+    effect_bigus_de_glazus, # бигус де глазус (глаза)
+    effect_bigus_de_ushes, # бигус де ушес (уши)
+    effect_de_krasnus,   # Де Краснус (красная кожа) - была на месте зелёной
+    effect_de_greatus,   # Де Грейтус (зелёная кожа) - была на месте красной
+    effect_de_bluzes,    # Де Блузес (синяя кожа)
+    effect_hop_hop_goblin, # гоблин
+    effect_krovosos,     # кровосос (вампир)
+    effect_auuuuf,       # ауууф (оборотень)
+    effect_temnaya,      # тёмная колба - была после COCONAT MILK
+    effect_coconat_milk, # COCONAT MILK - была перед тёмной
+    effect_slabaya       # слабая колба
 ]
 
-# Тексты подсказок для эффектов (соответствуют effects_list)
+# Тексты подсказок для эффектов (соответствуют новому порядку)
 effects_tooltips = [
-    ("хрю-хрю колба", "превращает людей в свинок"),
-    ("КУКАРЕКУУУУУУУУУУУ колба", "превращает людей в петухов"),
-    ("беее-бееее колба", "превращает людей в баранов"),
-    ("бигус де ноус колба", "делает носы людей больше"),
-    ("бигус де глазус колба", "делает глаза людей больше"),
-    ("бигус де ушес колба", "делает уши людей больше"),
-    ("Де Грейтус колба", "делает кожу зеленее"),
-    ("Де Краснус колба", "делает кожу краснее"),
-    ("Де Блузес колба", "делает кожу синей"),
-    ("хоп-хоп-гоблин колба", "делает из человека гоблина"),
-    ("кровосос колба", "делает из человека вампира"),
-    ("ауууууф колба", "делает из человека обортня"),
-    ("COCONAT MILK колба", "делает из человека кокос"),
-    ("тёмная колба", "делает человека темнее"),
-    ("слабая колба", "делает человеку пупу")
+    ("Колба Хряков", "превращает людей в свинок"),
+    ("Колба Кукареку", "превращает людей в петухов"),
+    ("Колба бэ-э-э", "превращает людей в баранов"),
+    ("Увеличение носа", "делает носы людей больше"),
+    ("Увеличение глаз", "делает глаза людей больше"),
+    ("Увеличение ушей", "делает уши людей больше"),
+    ("Помидор", "делает кожу красной"),       # поменяли местами с зелёной
+    ("Зелёнка", "делает кожу зеленой"),       # поменяли местами с красной
+    ("БлюГай", "делает кожу синей"),
+    ("Колба Гоблина", "делает из человека гоблина"),
+    ("Дракула", "делает из человека вампира"),
+    ("Проклятье Полночь", "делает из человека обортня"),
+    ("Колба темноты", "делает человека темнее"),        # поменяли местами с COCONAT MILK
+    ("Кокосовое Молоко", "делает из человека кокос"), # поменяли местами с тёмной
+    ("Слабительное", "Заставит гостя справить нужду у вас на глазах")
 ]
 
 action_buttons_positions = [
@@ -734,6 +963,9 @@ def draw():
 
         # Рисуем Волтера
         walter.draw(game.screen)
+        
+        # Рисуем клиента
+        current_client.draw(game.screen)
 
     # Отрисовываем кнопки для текущего состояния
     mouse_pos = pygame.mouse.get_pos()
